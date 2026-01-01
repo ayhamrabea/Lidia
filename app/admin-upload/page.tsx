@@ -40,7 +40,9 @@ export default function AdminUpload() {
 
   // جلب الأغاني
   const fetchSongs = async () => {
-    const { data, error } = await supabase.from<Song>("songs").select("*");
+    const { data, error } = await supabase
+      .from<Song, "public">("songs")
+      .select("*");
     if (error) {
       alert("Ошибка при получении песен: " + error.message);
     } else if (data) {
