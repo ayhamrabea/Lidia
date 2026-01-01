@@ -8,13 +8,21 @@
 // export default nextConfig;
 
 
+// /** @type {import('next').NextConfig} */
+// const nextConfig = {
+//   output: "export",     // هذا يجعل Next.js يصدر الموقع كـ static HTML
+//   assetPrefix: "./",    // لتصحيح مسارات CSS/JS/images بعد الرفع
+//   images: {
+//     unoptimized: true,  // إذا عندك صور من Next/Image
+//   },
+// };
+
+// module.exports = nextConfig;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "export",     // هذا يجعل Next.js يصدر الموقع كـ static HTML
-  assetPrefix: "./",    // لتصحيح مسارات CSS/JS/images بعد الرفع
+  reactStrictMode: true,
   images: {
-    unoptimized: true,  // إذا عندك صور من Next/Image
+    unoptimized: true, // إذا عندك صور من Next/Image
   },
 };
-
-module.exports = nextConfig;
