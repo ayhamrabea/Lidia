@@ -1,8 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+// إعداد Supabase
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 interface Song {
   id: number;
@@ -10,156 +16,146 @@ interface Song {
   url: string;
 }
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-export default function AdminUpload() {
-  const router = useRouter();
+export default function AdminUploadPage() {
+  const [password, setPassword] = useState("");
+  const [passwordEntered, setPasswordEntered] = useState(false);
 
   const [songs, setSongs] = useState<Song[]>([]);
-  const [name, setName] = useState("");
-  const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [newSongName, setNewSongName] = useState("");
+  const [newSongUrl, setNewSongUrl] = useState("");
 
-  const [authorized, setAuthorized] = useState(false);
-  const [passwordInput, setPasswordInput] = useState("");
-
-  const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "12345";
-
-  // تحقق كلمة المرور
-  const handlePasswordSubmit = () => {
-    if (passwordInput === ADMIN_PASSWORD) {
-      setAuthorized(true);
-      fetchSongs();
+  // التحقق من كلمة المرور
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
+      setPasswordEntered(true);
     } else {
-      alert("Неверный пароль");
+      alert("Неверный пароль!");
     }
   };
 
-  // جلب الأغاني
-  const fetchSongs = async () => {
-    const { data, error } = await supabase
-      .from<Song, "public">("songs")
-      .select("*");
-    if (error) {
-      alert("Ошибка при получении песен: " + error.message);
-    } else if (data) {
-      setSongs(data);
-    }
-  };
+  // جلب الأغاني عند الدخول بعد التحقق من كلمة المرور
+  useEffect(() => {
+    if (!passwordEntered) return;
+
+    const fetchData = async () => {
+      const { data, error } = await supabase.from("songs").select("*");
+      if (error) {
+        alert("Ошибка при получении песен: " + error.message);
+      } else if (data) {
+        setSongs(data as Song[]);
+      }
+    };
+
+    fetchData();
+  }, [passwordEntered]);
 
   // إضافة أغنية جديدة
-  const handleAdd = async () => {
-    if (!name || !url) return alert("Введите имя и URL песни");
-    setLoading(true);
-    const { data, error } = await supabase
-      .from<Song>("songs")
-      .insert([{ name, url }])
-      .select();
-    setLoading(false);
+  const handleAddSong = async () => {
+    if (!newSongName || !newSongUrl) return alert("Введите название и URL");
+
+    const { error } = await supabase.from("songs").insert([
+      { name: newSongName, url: newSongUrl },
+    ]);
+
     if (error) {
-      alert("Ошибка при добавлении: " + error.message);
-    } else if (data) {
-      setSongs([...songs, ...data]);
-      setName("");
-      setUrl("");
+      alert("Ошибка при добавлении песни: " + error.message);
+    } else {
+      setNewSongName("");
+      setNewSongUrl("");
+      // إعادة جلب الأغاني
+      const { data } = await supabase.from("songs").select("*");
+      if (data) setSongs(data as Song[]);
     }
   };
 
   // حذف أغنية
-  const handleDelete = async (id: number) => {
-    const confirmDelete = confirm("Вы уверены, что хотите удалить песню?");
-    if (!confirmDelete) return;
-    const { error } = await supabase.from<Song>("songs").delete().eq("id", id);
+  const handleDeleteSong = async (id: number) => {
+    if (!confirm("Вы уверены, что хотите удалить эту песню?")) return;
+
+    const { error } = await supabase.from("songs").delete().eq("id", id);
     if (error) {
-      alert("Ошибка при удалении: " + error.message);
+      alert("Ошибка при удалении песни: " + error.message);
     } else {
       setSongs(songs.filter((s) => s.id !== id));
     }
   };
 
-  // إذا لم يدخل كلمة المرور بعد
-  if (!authorized) {
+  if (!passwordEntered) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-8">
-        <h1 className="text-3xl font-bold mb-4">Введите пароль для доступа</h1>
-        <input
-          type="password"
-          value={passwordInput}
-          onChange={(e) => setPasswordInput(e.target.value)}
-          className="p-2 border rounded mb-4"
-          placeholder="Пароль"
-        />
-        <button
-          onClick={handlePasswordSubmit}
-          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
-        >
-          Войти
-        </button>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+        <h1 className="text-2xl mb-4">Введите пароль для доступа</h1>
+        <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-2">
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="p-2 border rounded"
+          />
+          <button type="submit" className="p-2 bg-blue-600 text-white rounded">
+            Войти
+          </button>
+        </form>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-6 text-center">Управление песнями</h1>
+    <div className="p-8">
+      <h1 className="text-3xl mb-4">Админ: управление песнями</h1>
 
       {/* زر العودة للصفحة الرئيسية */}
-      <div className="mb-6">
-        <button
-          onClick={() => router.push("/")}
-          className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition"
-        >
+      <Link href="/">
+        <button className="mb-4 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
           На главную
         </button>
-      </div>
+      </Link>
 
-      {/* Форма добавления */}
-      <div className="flex flex-col gap-3 mb-6">
+      {/* إضافة أغنية جديدة */}
+      <div className="mb-6 flex gap-2">
         <input
           type="text"
           placeholder="Название песни"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="p-2 border rounded"
+          value={newSongName}
+          onChange={(e) => setNewSongName(e.target.value)}
+          className="p-2 border rounded flex-1"
         />
         <input
           type="text"
-          placeholder="URL песни (Yandex)"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          className="p-2 border rounded"
+          placeholder="URL песни"
+          value={newSongUrl}
+          onChange={(e) => setNewSongUrl(e.target.value)}
+          className="p-2 border rounded flex-1"
         />
         <button
-          onClick={handleAdd}
-          disabled={loading}
-          className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
+          onClick={handleAddSong}
+          className="px-4 py-2 bg-green-600 text-white rounded"
         >
-          {loading ? "Добавление..." : "Добавить песню"}
+          Добавить
         </button>
       </div>
 
-      {/* Список песен */}
-      <ul className="flex flex-col gap-4">
+      {/* قائمة الأغاني */}
+      <ul className="flex flex-col gap-2">
         {songs.map((song) => (
-          <li
-            key={song.id}
-            className="flex justify-between items-center p-3 border rounded"
-          >
-            <div>
-              <p className="font-semibold">{song.name}</p>
-              <a href={song.url} target="_blank" className="text-blue-600 underline">
+          <li key={song.id} className="flex justify-between items-center p-2 border rounded">
+            <span>{song.name}</span>
+            <div className="flex gap-2">
+              <a
+                href={song.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline"
+              >
                 Прослушать
               </a>
+              <button
+                onClick={() => handleDeleteSong(song.id)}
+                className="px-2 py-1 bg-red-600 text-white rounded"
+              >
+                Удалить
+              </button>
             </div>
-            <button
-              onClick={() => handleDelete(song.id)}
-              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
-            >
-              Удалить
-            </button>
           </li>
         ))}
       </ul>
