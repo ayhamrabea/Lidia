@@ -107,8 +107,7 @@ function HeroSection() {
       alt="Lidia"
       className="w-full rounded-3xl object-cover"
     />
-    {/* إذا لا تريد أي تأثير Overlay، يمكن إزالة هذا الـ div */}
-    {/* <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-3xl pointer-events-none"></div> */}
+
   </div>
 </motion.div>
       </div>
