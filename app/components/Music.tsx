@@ -67,7 +67,7 @@ function Music() {
               viewport={{ once: true }}
               transition={{
                 duration: theme.animation.fadeDuration,
-                delay: index * theme.animation.staggerDelay,
+                // delay: index * theme.animation.staggerDelay,
               }}
               className="p-6 rounded-2xl shadow-lg cursor-pointer hover:shadow-2xl hover:scale-105 transition-transform"
               style={{
