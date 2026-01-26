@@ -9,7 +9,6 @@ const links = [
   { label: "Обо мне", href: "#Биография", type: "anchor" },
   { label: "Музыка", href: "#Музыка", type: "anchor" },
   { label: "Контакты", href: "#Контакты", type: "anchor" },
-  { label: "Админ", href: "/admin-upload", type: "page" },
 ];
 
 

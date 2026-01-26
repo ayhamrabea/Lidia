@@ -1,11 +1,11 @@
-// import type { NextConfig } from "next";
+import type { NextConfig } from "next";
 
-// const nextConfig: NextConfig = {
-//   /* config options here */
-//   output: 'export',
-// };
+const nextConfig: NextConfig = {
+  /* config options here */
+  output: 'export',
+};
 
-// export default nextConfig;
+export default nextConfig;
 
 
 // /** @type {import('next').NextConfig} */
@@ -19,10 +19,10 @@
 
 // module.exports = nextConfig;
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  images: {
-    unoptimized: true, // إذا عندك صور من Next/Image
-  },
-};
+// /** @type {import('next').NextConfig} */
+// const nextConfig = {
+//   reactStrictMode: true,
+//   images: {
+//     unoptimized: true, // إذا عندك صور من Next/Image
+//   },
+// };
